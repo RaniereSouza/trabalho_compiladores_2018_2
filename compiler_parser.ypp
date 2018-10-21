@@ -1,0 +1,830 @@
+%{ 
+    #define  YYDEBUG 1
+    #include "compiler_headings.hpp"
+
+    
+    struct name_t {
+        string type;
+        string name;
+    };
+
+    struct func_t {
+        name_t         def;
+        vector<name_t> args;
+        bool           has_returned;
+        int            return_counter;
+    };
+
+    vector<name_t> vars_stack;
+    vector<func_t> funcs_stack =    {
+                                        {{"int",  "input"},   {},             true,  1}, // int input (void) {...}
+                                        {{"void", "println"}, {{"int", "x"}}, false, 0}  // void println (int x) {...}
+                                    };
+    vector<string> args_acc,
+                   expr_aux;
+
+    int    nesting_counter  = 0,
+           current_func     = -1;
+    string next_scope_type  = "block",
+           expr_acc         = "";
+
+    void open_scope      (string t);
+    bool create_var      (string t, string          n);
+    bool get_var         (string n, name_t          &holder);
+    bool create_func     (string t, string          n);
+    bool get_func        (string n, func_t          &holder);
+    bool comp_args       (func_t f, vector<string>* args);
+    bool set_func_return ();
+    void close_scope     ();
+%}
+
+
+%union{
+    long  int       number;
+    const char*     type_name;
+    const char*     identifier;
+    const char*     symbol;
+    const char*     keyword;
+    vector<string>* arguments;
+}
+
+%define parse.error verbose
+
+%start program
+
+%token <number>     NUM
+%token <identifier> ID
+%token <symbol>     COMMA ADD SUB MUL DIV L_PAR R_PAR L_BRA R_BRA L_CUR R_CUR SEMIC ASGN LT GT LTE GTE EQ NEQ
+%token <keyword>    IF ELSE WHILE RET INT VOID
+
+%type  <number>     params param_list
+%type  <arguments>  args arg_list
+%type  <type_name>  expression_stmt expression simple_expression additive_expression term factor var call
+%type  <symbol>     relop addop mulop
+%type  <keyword>    type_specifier
+
+%left  LT GT EQ NEQ LTE GTE
+%left  ADD SUB
+%left  MUL DIV
+
+%%
+
+program:             /*empty */ {
+                                    ofstream tree_file (parser_tree_path, ofstream::out);
+                                    if (tree_file.is_open()) { tree_file << ""; tree_file.close(); }
+                                } |
+                     declaration_list {
+
+                                    name_t last_var  = vars_stack.back();
+                                    func_t last_func = funcs_stack.back();
+
+                                    //cout << "wrote tree to file " << parser_tree_path << endl;
+
+                                    if ((last_var.name         == "main") &&
+                                        (last_var.type         == "func") &&
+                                        (last_func.def.name    == "main") &&
+                                        (last_func.def.type    == "void") &&
+                                        (last_func.args.size() == 0)     ) {
+
+                                        write_to_tree("]\n"); 
+                                    }
+                                    else {
+                                        yyerror("program didn't end with \"void main (void) {...}\"");
+                                        YYERROR;
+                                    }
+                                } ;
+
+declaration_list:    declaration_list declaration |
+                     declaration                  ;
+
+declaration:         fun_declaration |
+                     var_declaration ;
+
+var_declaration:     type_specifier ID SEMIC    { 
+
+                                                    string convert_1 ($1), //type
+                                                           convert_2 ($2); //name
+
+                                                    //free($1);
+                                                    //free($2);
+
+                                                    if (convert_1 != "void") {
+                                                        //cout << "var name: " << convert_2 << endl;
+                                                        if (create_var(convert_1, convert_2)) {
+                                                            write_to_tree("[var-declaration [" + convert_1 + "][" + convert_2 + "]]"); 
+                                                        }
+                                                        else {
+                                                            YYERROR;
+                                                        }
+                                                    }
+                                                    else {
+                                                        yyerror("cannot declare variable of type void");
+                                                        YYERROR;
+                                                    } 
+                                                } |
+                     type_specifier ID L_BRA NUM R_BRA SEMIC { 
+
+                                                    string convert_1 ($1), //type
+                                                           convert_2 ($2); //name
+
+                                                    //free($1);
+                                                    //free($2);
+
+                                                    if (convert_1 != "void") {
+                                                        //cout << "var name: " << convert_2 << endl;
+                                                        if (create_var(convert_1 + "[]", convert_2)) {
+                                                            write_to_tree("[var-declaration [" + convert_1 + "][" + convert_2 + "][" + to_string($4) + "]]");
+                                                        }
+                                                        else {
+                                                            YYERROR;
+                                                        }
+                                                    }
+                                                    else {
+                                                        yyerror("cannot declare variable of type void");
+                                                        YYERROR;
+                                                    } 
+                                                } ;
+
+fun_declaration:     fun_decl_head params R_PAR { write_to_tree("]"); } compound_stmt { write_to_tree("]"); } ;
+fun_decl_head:       type_specifier ID L_PAR {
+
+                            string convert_1 ($1), //return type
+                                   convert_2 ($2); //name
+
+                            //free($1);
+                            //free($2);
+                            //cout << "func name: " << convert_2 << endl;
+                            if (create_var("func", convert_2)) {
+                                if (create_func(convert_1, convert_2)) {
+                                    write_to_tree("[fun-declaration [" + convert_1 + "][" + convert_2 + "]");
+                                    open_scope("params");
+                                    write_to_tree("[params");
+                                    next_scope_type = "func";
+                                    current_func    = funcs_stack.size() - 1;
+                                }
+                                else {
+                                    YYERROR;
+                                }
+                            }
+                            else {
+                                YYERROR;
+                            }
+                        } ;
+
+type_specifier:      INT  |
+                     VOID ;
+
+params:              { write_to_tree(" "); } param_list { /* cout << "params: " << $2 << endl; */ $$ = $2; } |
+                     VOID { /* cout << "no params" << endl; */ $$ = 0; }                                     ;
+
+param_list:          param_list COMMA param { $$ = $1 + 1; /* counting parameters */ } |
+                     param                  { $$ = 1; }                                ;
+
+param:               type_specifier ID  { 
+
+                                            string convert_1 ($1), //type
+                                                   convert_2 ($2); //name
+
+                                            //free($1);
+                                            //free($2);
+
+                                            if (convert_1 != "void") {
+                                                //cout << "param name: " << convert_2 << endl;
+                                                if (create_var(convert_1, convert_2)) {
+                                                    write_to_tree("[param [" + convert_1 + "][" + convert_2 + "]]");
+                                                    funcs_stack[current_func].args.push_back({convert_1, convert_2});
+                                                }
+                                                else {
+                                                    YYERROR;
+                                                }
+                                            }
+                                            else {
+                                                yyerror("cannot declare variable of type void");
+                                                YYERROR;
+                                            }
+                                        } |
+                     type_specifier ID L_BRA R_BRA  { 
+
+                                            string convert_1 ($1), //type
+                                                   convert_2 ($2); //name
+
+                                            //free($1);
+                                            //free($2);
+
+                                            if (convert_1 != "void") {
+                                                //cout << "param name: " << convert_2 << endl;
+                                                if (create_var(convert_1 + "[]", convert_2)) {
+                                                    write_to_tree("[param [" + convert_1 + "][" + convert_2 + "][\\[\\]]]");
+                                                    funcs_stack[current_func].args.push_back({convert_1 + "[]", convert_2});
+                                                }
+                                                else {
+                                                    YYERROR;
+                                                }
+                                            }
+                                            else {
+                                                yyerror("cannot declare variable of type void");
+                                                YYERROR;
+                                            }
+                                        } ; 
+
+compound_stmt:       open_compd local_declarations statement_list close_compd                                            ;
+open_compd:          L_CUR { write_to_tree("[compound-stmt "); open_scope(next_scope_type); next_scope_type = "block"; } ;
+close_compd:         R_CUR { write_to_tree("]"); close_scope(); }                                                        ;
+
+local_declarations:  /* empty */                        |
+                     local_declarations var_declaration ;
+
+statement_list:      /* empty */              |
+                     statement_list statement ;
+
+statement:           expression_stmt |
+                     compound_stmt   |
+                     selection_stmt  |
+                     iteration_stmt  |
+                     return_stmt     ;
+
+selection_stmt:      selection_head scope_stmt                 { write_to_tree("]"); } |
+                     selection_head scope_stmt ELSE scope_stmt { write_to_tree("]"); } ;
+selection_head:      IF L_PAR expression R_PAR  {
+
+                            string convert ($3);
+
+                            //free($3);
+                            //cout << "if-then-else block" << endl;
+                            write_to_tree("[selection-stmt " + expr_acc);
+                            expr_acc = "";
+
+                            if (convert != "int") {
+                                yyerror("check in if statement doesn't resume to a valid value");
+                                YYERROR;
+                            }
+                        } ;
+
+iteration_stmt:      iteration_head scope_stmt { write_to_tree("]"); } ;
+iteration_head:      WHILE L_PAR expression R_PAR   {
+
+                            string convert ($3);
+
+                            //free($3);
+                            //cout << "while block" << endl;
+                            write_to_tree("[iteration-stmt " + expr_acc);
+                            expr_acc = "";
+
+                            if (convert != "int") {
+                                yyerror("check in while statement doesn't resume to a valid value");
+                                YYERROR;
+                            }
+                        } ;              
+
+scope_stmt:          statement     |
+                     compound_stmt ;
+
+return_stmt:         RET SEMIC  {
+
+                                    //cout << "return call" << endl;
+                                    write_to_tree("[return-stmt]");
+
+                                    if (set_func_return()) { // existing function to return
+                                        if (funcs_stack[current_func].def.type != "void") { // non-void function
+                                            yyerror("cannot do empty return for non-void function ");
+                                            YYERROR;
+                                        }
+                                        else { // void function
+                                            if (funcs_stack[current_func].return_counter > 1) { // already returned in this scope
+                                                yyerror("multiple function returns in this scope");
+                                                YYERROR;
+                                            }
+                                        }
+                                    }
+                                    else { // not inside a function
+                                        YYERROR;
+                                    }
+                                } |
+                     RET expression SEMIC {   
+
+                                    string convert ($2);
+
+                                    //free($3);
+                                    //cout << "return call" << endl;
+
+                                    write_to_tree("[return-stmt " + expr_acc + "]");
+                                    expr_acc = "";
+
+                                    if (set_func_return()) { // existing function to return
+                                        if (funcs_stack[current_func].def.type == "void") {
+                                            yyerror("cannot do return with value for void function");
+                                            YYERROR;
+                                        }
+                                        else {
+                                            if (funcs_stack[current_func].return_counter > 1) {
+                                                yyerror("multiple function returns in this scope");
+                                                YYERROR;
+                                            }
+                                            else {
+                                                if (convert != funcs_stack[current_func].def.type) {
+                                                    yyerror("return of different value type from function");
+                                                    YYERROR;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else { // not inside a function
+                                        YYERROR;
+                                    } 
+                                } ;
+
+expression_stmt:     expression SEMIC {
+
+                                string convert ($1);
+
+                                if (convert != "int[]") {
+                                    //cout << "expr_acc: " << expr_acc << endl;
+                                    write_to_tree(expr_acc);
+                                    expr_acc = "";
+                                }
+                                else {
+                                    yyerror("expression resumes to array with no index");
+                                    YYERROR;
+                                }
+                            } |
+                     SEMIC  { 
+                                write_to_tree("[;]");
+                                expr_acc = "";
+                                $$ = strdup(string("void").c_str());
+                            } ;
+
+expression:          var ASGN
+                     { expr_aux.push_back(expr_acc); expr_acc = ""; }
+                     expression         {  
+
+                                            string convert_1 ($1),
+                                                   convert_4 ($4);
+                                            name_t holder;
+
+                                            //free($1);
+                                            //free($4);
+                                            //cout << "assignment of " << convert_4 << " to " << convert_1 << endl;
+                                            //cout << "head of assignment: " << expr_aux.back() << endl;
+                                            //cout << "body of assignment: " << expr_acc << endl;
+
+                                            expr_acc = "[= " + expr_aux.back() + expr_acc + "]";
+                                            expr_aux.pop_back();
+
+                                            if ((convert_1 != "int[]") && (convert_4 != "int[]")) {
+                                                if (convert_1 == convert_4) {
+                                                    $$ = strdup(convert_1.c_str());
+                                                } 
+                                                else {
+                                                    yyerror("assignment of different value type from variable");
+                                                    YYERROR;
+                                                }
+                                            }
+                                            else {
+                                                yyerror("trying to assign array pointer");
+                                                YYERROR;
+                                            }
+                                        } |
+                     simple_expression    ;
+
+simple_expression:   additive_expression relop
+                     { expr_aux.push_back(expr_acc); expr_acc = ""; }
+                     additive_expression    {
+
+                                                string convert_1 ($1),
+                                                       convert_2 ($2),
+                                                       convert_4 ($4);
+
+                                                //free($1);
+                                                //free($2);
+                                                //free($4);
+                                                //cout << convert_2 << " operation" << endl;
+
+                                                expr_acc =  "[" + convert_2 + " " +
+                                                            expr_aux.back() + expr_acc + "]";
+                                                
+                                                expr_aux.pop_back();
+
+                                                if ((convert_1 == "int") && (convert_4 == "int")) {
+                                                    $$ = strdup(string("int").c_str());
+                                                }
+                                                else {
+                                                    yyerror("illegal operation between " + convert_1 + " and " + convert_4);
+                                                    YYERROR;
+                                                }
+                                            } |
+                     additive_expression      ;
+
+relop:               LTE |
+                     GTE |
+                     LT  |
+                     GT  |
+                     EQ  |
+                     NEQ ;
+
+additive_expression: additive_expression addop
+                     { expr_aux.push_back(expr_acc); expr_acc = ""; }
+                     term   {
+
+                                string convert_1 ($1),
+                                       convert_2 ($2),
+                                       convert_4 ($4);
+
+                                //free($1);
+                                //free($2);
+                                //free($4);
+                                //cout << convert_2 << " operation" << endl;
+
+                                expr_acc =  "[" + convert_2 + " " +
+                                            expr_aux.back() + expr_acc + "]";
+                                
+                                expr_aux.pop_back();
+
+                                if ((convert_1 == "int") && (convert_4 == "int")) {
+                                    $$ = strdup(string("int").c_str());
+                                }
+                                else {
+                                    yyerror("illegal operation between " + convert_1 + " and " + convert_4);
+                                    YYERROR;
+                                }
+                            } |
+                     term     ;
+
+addop:               ADD |
+                     SUB ;
+
+term:                term mulop
+                     { expr_aux.push_back(expr_acc); expr_acc = ""; }
+                     factor {   
+
+                                string convert_1 ($1),
+                                       convert_2 ($2),
+                                       convert_4 ($4);
+
+                                //free($1);
+                                //free($2);
+                                //free($4);
+                                //cout << convert_2 << " operation" << endl;
+
+                                expr_acc =  "[" + convert_2 + " " +
+                                            expr_aux.back() + expr_acc + "]";
+                                
+                                expr_aux.pop_back();
+
+                                if ((convert_1 == "int") && (convert_4 == "int")) {
+                                    $$ = strdup(string("int").c_str());
+                                }
+                                else {
+                                    yyerror("illegal operation between " + convert_1 + " and " + convert_4);
+                                    YYERROR;
+                                }
+                            } |
+                     factor   ;
+
+mulop:               MUL |
+                     DIV ;
+
+factor:              L_PAR expression R_PAR { $$ = $2; }                                                            |
+                     var   { /* string convert ($1); cout << "call var of type "  << convert << endl; */ $$ = $1; } |
+                     call  { /* string convert ($1); cout << "call func of type " << convert << endl; */ $$ = $1; } |
+                     NUM   { 
+                                if (($1 < 2147483648)  &&
+                                    ($1 > -2147483648)) {
+
+                                    expr_acc += "[" + to_string($1) + "]";
+                                    $$ = strdup(string("int").c_str());
+                                }
+                                else {
+                                    yyerror("constant out of limits for type int");
+                                    YYERROR;
+                                }
+                            } ;
+
+var:                 ID {   
+
+                            string convert ($1);                                   
+                            name_t holder;
+
+                            //free($1);                         
+                                                                
+                            if (get_var(convert, holder)) {
+                                if (holder.type != "func") {
+                                    //cout << "use of var " << convert << endl;
+                                    expr_acc += "[var [" + convert + "]]";
+                                    $$ = strdup(holder.type.c_str());
+                                }
+                                else {
+                                    yyerror("tried using function " + convert + " as var");
+                                    YYERROR;
+                                }
+                            }                                  
+                            else {                             
+                                YYERROR;                        
+                            }                                    
+                        } |
+                     ID L_BRA
+                     { string convert_1 ($1); expr_aux.push_back("[var [" + convert_1 + "]"); }
+                     expression R_BRA  {
+
+                            string convert_1 ($1),
+                                   convert_4 ($4);                                   
+                            name_t holder;
+
+                            //free($1);                         
+                            //free($4);
+                            //cout << "head of var: " << expr_aux.back() << endl;
+                            //cout << "body of var: " << expr_acc        << endl;                        
+                                                                
+                            if (get_var(convert_1, holder)) {
+                                if (holder.type != "func") {
+                                    if (holder.type == "int[]") {
+                                        if (convert_4 == "int") {
+                                            expr_acc = expr_aux.back() + expr_acc + "]";
+                                            //cout << "use of var " << convert_1 << "[n]" << endl;
+                                            //cout << "full var: "  << expr_acc  << endl;
+                                            expr_aux.pop_back(); 
+                                            $$ = strdup(string("int").c_str());
+                                        }
+                                        else {
+                                            yyerror("use of non-int index to access array " + convert_1);
+                                            YYERROR;
+                                        }
+                                    }
+                                    else {
+                                        yyerror("variable " + convert_1 + " isn't an array");
+                                        YYERROR;
+                                    }
+                                }
+                                else {
+                                    yyerror("tried using function " + convert_1 + " as var");
+                                    YYERROR;
+                                }                
+                            }                                  
+                            else {                             
+                                YYERROR;                        
+                            }
+                        } ;
+
+call:                ID L_PAR args R_PAR { 
+
+                                    string convert ($1);
+                                    func_t holder;                         
+
+                                    //free($1);
+                                    //cout << "call of func " << convert    << endl;
+                                    //cout << "args: "        << $3->size() << endl;
+
+                                    if ($3->size() > 0) { expr_aux.back() = " " + expr_aux.back(); }
+                                    
+                                    expr_acc = "[call [" + convert + "][args" + expr_aux.back() + "]]";
+                                    expr_aux.pop_back();
+
+                                    if (get_func(convert, holder)) {
+
+                                        //cout << "params: " << holder.args.size() << endl;
+
+                                        if (!comp_args(holder, $3)) {
+                                            YYERROR;
+                                        }
+                                        else {
+                                            $$ = strdup(holder.def.type.c_str());
+                                        }
+
+                                        args_acc.clear();                 
+                                    }                                  
+                                    else {                             
+                                        YYERROR;                      
+                                    }
+                                } ;
+
+args:                /* empty */ { expr_aux.push_back(""); vector<string> empty; $$ = &empty; } |
+                     arg_list { $$ = $1; }                                                      ;
+
+arg_list:            arg_list COMMA expression  { 
+
+                                    string convert ($3); // <---
+                                    
+                                    //free($3);
+                                    expr_acc = expr_aux.back() + expr_acc;
+                                    expr_aux.pop_back();
+                                    expr_aux.push_back(expr_acc);
+                                    expr_acc = "";
+
+                                    $1->push_back(convert); /* stacking arguments */
+                                    $$ = $1;
+                                } |
+                     expression {
+
+                                    string convert ($1);
+
+                                    //free($1);
+                                    expr_aux.push_back(expr_acc);
+                                    expr_acc = "";
+
+                                    args_acc.push_back(convert);
+                                    $$ = &args_acc;
+                                } ;
+
+%%
+
+void yyerror (string message) {
+
+    ofstream tree_file (parser_tree_path, ofstream::out);
+
+    cerr << "line " << line_num << ": " << message << endl;
+    if (tree_file.is_open()) { tree_file << ""; tree_file.close(); } 
+}
+
+void open_scope (string t) {
+    //cout << "opening scope of " << t << endl;
+    vars_stack.push_back({t, "###"}); // push scope marker
+    nesting_counter++;
+};
+
+string closest_scope_type () {
+    
+    for (int i = vars_stack.size() - 1; i >= 0; i--) { // traverse back until global scope
+        
+        if (vars_stack[i].name == "###") {
+            return vars_stack[i].type;
+        }
+    }
+
+    return "global";
+}
+
+int get_var_index_full (string n) {
+
+    for (int i = vars_stack.size() - 1; i >= 0; i--) { // traverse back until global scope
+        
+        if (vars_stack[i].name == n) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+int get_var_index_closest (string n) {
+
+    int i = vars_stack.size() - 1;
+
+    for ( ; (i >= 0) && (vars_stack[i].name != "###"); i--) { // traverse back to closest scope marker
+        if (vars_stack[i].name == n) {
+            return i;
+        }
+    }
+
+    if (closest_scope_type() == "func") {
+        for ( ; (i >= 0) && (vars_stack[i].type != "params"); i--) { // traverse back to parameters scope if in function
+            if (vars_stack[i].name == n) {
+                return i;
+            }
+        }
+    }
+
+    return -1;
+}
+
+bool create_var (string t, string n) {
+
+    int i = get_var_index_closest(n);
+        
+    if (i >= 0) {
+        yyerror("var " + n + " already declared in this scope");
+        return false;
+    }
+
+    //cout << "pushing var " << n << " of type " << t << endl;
+    vars_stack.push_back({t, n});
+    return true;
+}
+
+
+bool get_var (string n, name_t &holder) {
+
+    int i = get_var_index_full(n);
+    
+    if (i >= 0) {
+        holder = vars_stack[i];
+        return true;
+    }
+
+    yyerror("var " + n + " wasn't declared in this scope");
+    return false;
+}
+
+bool create_func (string t, string n) {
+
+    for (auto i:funcs_stack) {
+        if (i.def.name == n) {
+            yyerror("func " + n + " already declared in this scope");
+            return false;
+        }
+    }
+
+    funcs_stack.push_back({{t, n}, {}, false, 0});
+    return true;
+}
+
+bool get_func (string n, func_t &holder) {
+
+    for (auto i:funcs_stack) {
+        if (i.def.name == n) {
+            holder = i;
+            return true;
+        }
+    }
+
+    yyerror("func " + n + " wasn't declared in this scope");
+    return false;
+}
+
+bool comp_args (func_t f, vector<string>* args) {
+
+    if (f.args.size() == args->size()) {
+
+        for (unsigned int i = 0; i < f.args.size(); i++) {
+            if (f.args[i].type != (*args)[i]) {
+                yyerror("argument " + (*args)[i] + " of different type from parameter " + f.args[i].type);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    yyerror("different number of arguments passed to function");
+    return false;
+}
+
+bool set_func_return () {
+
+    if (current_func >= 0) {
+        funcs_stack[current_func].has_returned = true;
+        funcs_stack[current_func].return_counter++;
+        return true;
+    }
+
+    yyerror("no current function to return");
+    return false;
+}
+
+void close_scope () {
+
+    if ((current_func >= 0)) {
+        if ((funcs_stack[current_func].return_counter > 0)) { // decrementing conditional return in this scope
+            //cout << "discard conditional returns" << endl;
+            funcs_stack[current_func].return_counter = 0;
+        }
+        else if ((funcs_stack[current_func].def.type != "void") &&
+                 (closest_scope_type()               == "func")) {
+            
+            cout << "line " << line_num << ": --warning-- you might not be returning a value for non-void function" << endl;
+        }
+    }
+
+    while ((vars_stack.size() > 0) && (vars_stack.back().name != "###")) { // pop everything after the closer scope marker
+        //cout << "pop var " << vars_stack.back().name << endl;
+        vars_stack.pop_back();
+    }
+
+    if ((vars_stack.back().name == "###") && (vars_stack.back().type == "func")) { // it's a function block
+
+
+        if ((funcs_stack[current_func].def.type != "void")) {
+            if (!funcs_stack[current_func].has_returned) {
+                yyerror("closing non-void function without returning a value");
+                return;
+            }
+        }
+
+        //cout << "closing of " << vars_stack.back().type << " scope" << endl;
+        vars_stack.pop_back(); // pop the scope marker
+        current_func = -1;
+        close_scope(); // pop function parameters
+        return;
+    }
+
+    //cout << "closing of " << vars_stack.back().type << " scope" << endl;
+    vars_stack.pop_back(); // pop the scope marker
+    nesting_counter--;
+}
+
+void print_symbol_table () {
+
+    string output = "[ ";
+
+    for (auto i:vars_stack) {
+        if (i.name != "###") { output += i.name + " "; }
+        else { output += "<" + i.type + "> "; }
+    }
+
+    output += "]";
+    cout << output << endl;
+}
+
+void write_to_tree (string s) {
+    ofstream tree_file (parser_tree_path, ofstream::app);
+    tree_file << s;
+    tree_file.close();
+}

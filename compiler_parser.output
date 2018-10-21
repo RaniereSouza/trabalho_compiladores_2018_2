@@ -1,0 +1,1423 @@
+Regras inúteis no analisador por causa de conflitos
+
+   39 scope_stmt: compound_stmt
+
+
+Estado 8 conflitos: 1 de deslocamento/redução
+Estado 71 conflitos: 10 de redução/redução
+Estado 73 conflitos: 1 de deslocamento/redução
+
+
+Gramática
+
+    0 $accept: program $end
+
+    1 program: %empty
+    2        | declaration_list
+
+    3 declaration_list: declaration_list declaration
+    4                 | declaration
+
+    5 declaration: fun_declaration
+    6            | var_declaration
+
+    7 var_declaration: type_specifier ID SEMIC
+    8                | type_specifier ID L_BRA NUM R_BRA SEMIC
+
+    9 $@1: %empty
+
+   10 fun_declaration: fun_decl_head params R_PAR $@1 compound_stmt
+
+   11 fun_decl_head: type_specifier ID L_PAR
+
+   12 type_specifier: INT
+   13               | VOID
+
+   14 $@2: %empty
+
+   15 params: $@2 param_list
+   16       | VOID
+
+   17 param_list: param_list COMMA param
+   18           | param
+
+   19 param: type_specifier ID
+   20      | type_specifier ID L_BRA R_BRA
+
+   21 compound_stmt: open_compd local_declarations statement_list close_compd
+
+   22 open_compd: L_CUR
+
+   23 close_compd: R_CUR
+
+   24 local_declarations: %empty
+   25                   | local_declarations var_declaration
+
+   26 statement_list: %empty
+   27               | statement_list statement
+
+   28 statement: expression_stmt
+   29          | compound_stmt
+   30          | selection_stmt
+   31          | iteration_stmt
+   32          | return_stmt
+
+   33 selection_stmt: selection_head scope_stmt
+   34               | selection_head scope_stmt ELSE scope_stmt
+
+   35 selection_head: IF L_PAR expression R_PAR
+
+   36 iteration_stmt: iteration_head scope_stmt
+
+   37 iteration_head: WHILE L_PAR expression R_PAR
+
+   38 scope_stmt: statement
+   39           | compound_stmt
+
+   40 return_stmt: RET SEMIC
+   41            | RET expression SEMIC
+
+   42 expression_stmt: expression SEMIC
+   43                | SEMIC
+
+   44 $@3: %empty
+
+   45 expression: var ASGN $@3 expression
+   46           | simple_expression
+
+   47 $@4: %empty
+
+   48 simple_expression: additive_expression relop $@4 additive_expression
+   49                  | additive_expression
+
+   50 relop: LTE
+   51      | GTE
+   52      | LT
+   53      | GT
+   54      | EQ
+   55      | NEQ
+
+   56 $@5: %empty
+
+   57 additive_expression: additive_expression addop $@5 term
+   58                    | term
+
+   59 addop: ADD
+   60      | SUB
+
+   61 $@6: %empty
+
+   62 term: term mulop $@6 factor
+   63     | factor
+
+   64 mulop: MUL
+   65      | DIV
+
+   66 factor: L_PAR expression R_PAR
+   67       | var
+   68       | call
+   69       | NUM
+
+   70 var: ID
+
+   71 $@7: %empty
+
+   72 var: ID L_BRA $@7 expression R_BRA
+
+   73 call: ID L_PAR args R_PAR
+
+   74 args: %empty
+   75     | arg_list
+
+   76 arg_list: arg_list COMMA expression
+   77         | expression
+
+
+Terminais, com as regras onde eles aparecem
+
+$end (0) 0
+error (256)
+NUM (258) 8 69
+ID (259) 7 8 11 19 20 70 72 73
+COMMA (260) 17 76
+ADD (261) 59
+SUB (262) 60
+MUL (263) 64
+DIV (264) 65
+L_PAR (265) 11 35 37 66 73
+R_PAR (266) 10 35 37 66 73
+L_BRA (267) 8 20 72
+R_BRA (268) 8 20 72
+L_CUR (269) 22
+R_CUR (270) 23
+SEMIC (271) 7 8 40 41 42 43
+ASGN (272) 45
+LT (273) 52
+GT (274) 53
+LTE (275) 50
+GTE (276) 51
+EQ (277) 54
+NEQ (278) 55
+IF (279) 35
+ELSE (280) 34
+WHILE (281) 37
+RET (282) 40 41
+INT (283) 12
+VOID (284) 13 16
+
+
+Não terminais com as regras onde eles aparecem
+
+$accept (30)
+    à esquerda: 0
+program (31)
+    à esquerda: 1 2, à direita: 0
+declaration_list (32)
+    à esquerda: 3 4, à direita: 2 3
+declaration (33)
+    à esquerda: 5 6, à direita: 3 4
+var_declaration (34)
+    à esquerda: 7 8, à direita: 6 25
+fun_declaration (35)
+    à esquerda: 10, à direita: 5
+$@1 (36)
+    à esquerda: 9, à direita: 10
+fun_decl_head (37)
+    à esquerda: 11, à direita: 10
+type_specifier (38)
+    à esquerda: 12 13, à direita: 7 8 11 19 20
+params (39)
+    à esquerda: 15 16, à direita: 10
+$@2 (40)
+    à esquerda: 14, à direita: 15
+param_list (41)
+    à esquerda: 17 18, à direita: 15 17
+param (42)
+    à esquerda: 19 20, à direita: 17 18
+compound_stmt (43)
+    à esquerda: 21, à direita: 10 29 39
+open_compd (44)
+    à esquerda: 22, à direita: 21
+close_compd (45)
+    à esquerda: 23, à direita: 21
+local_declarations (46)
+    à esquerda: 24 25, à direita: 21 25
+statement_list (47)
+    à esquerda: 26 27, à direita: 21 27
+statement (48)
+    à esquerda: 28 29 30 31 32, à direita: 27 38
+selection_stmt (49)
+    à esquerda: 33 34, à direita: 30
+selection_head (50)
+    à esquerda: 35, à direita: 33 34
+iteration_stmt (51)
+    à esquerda: 36, à direita: 31
+iteration_head (52)
+    à esquerda: 37, à direita: 36
+scope_stmt (53)
+    à esquerda: 38 39, à direita: 33 34 36
+return_stmt (54)
+    à esquerda: 40 41, à direita: 32
+expression_stmt (55)
+    à esquerda: 42 43, à direita: 28
+expression (56)
+    à esquerda: 45 46, à direita: 35 37 41 42 45 66 72 76 77
+$@3 (57)
+    à esquerda: 44, à direita: 45
+simple_expression (58)
+    à esquerda: 48 49, à direita: 46
+$@4 (59)
+    à esquerda: 47, à direita: 48
+relop (60)
+    à esquerda: 50 51 52 53 54 55, à direita: 48
+additive_expression (61)
+    à esquerda: 57 58, à direita: 48 49 57
+$@5 (62)
+    à esquerda: 56, à direita: 57
+addop (63)
+    à esquerda: 59 60, à direita: 57
+term (64)
+    à esquerda: 62 63, à direita: 57 58 62
+$@6 (65)
+    à esquerda: 61, à direita: 62
+mulop (66)
+    à esquerda: 64 65, à direita: 62
+factor (67)
+    à esquerda: 66 67 68 69, à direita: 62 63
+var (68)
+    à esquerda: 70 72, à direita: 45 67
+$@7 (69)
+    à esquerda: 71, à direita: 72
+call (70)
+    à esquerda: 73, à direita: 68
+args (71)
+    à esquerda: 74 75, à direita: 73
+arg_list (72)
+    à esquerda: 76 77, à direita: 75 76
+
+
+Estado 0
+
+    0 $accept: . program $end
+
+    INT   deslocar, e ir ao estado 1
+    VOID  deslocar, e ir ao estado 2
+
+    $padrão  reduzir usando a regra 1 (program)
+
+    program           ir ao estado 3
+    declaration_list  ir ao estado 4
+    declaration       ir ao estado 5
+    var_declaration   ir ao estado 6
+    fun_declaration   ir ao estado 7
+    fun_decl_head     ir ao estado 8
+    type_specifier    ir ao estado 9
+
+
+Estado 1
+
+   12 type_specifier: INT .
+
+    $padrão  reduzir usando a regra 12 (type_specifier)
+
+
+Estado 2
+
+   13 type_specifier: VOID .
+
+    $padrão  reduzir usando a regra 13 (type_specifier)
+
+
+Estado 3
+
+    0 $accept: program . $end
+
+    $end  deslocar, e ir ao estado 10
+
+
+Estado 4
+
+    2 program: declaration_list .
+    3 declaration_list: declaration_list . declaration
+
+    INT   deslocar, e ir ao estado 1
+    VOID  deslocar, e ir ao estado 2
+
+    $padrão  reduzir usando a regra 2 (program)
+
+    declaration      ir ao estado 11
+    var_declaration  ir ao estado 6
+    fun_declaration  ir ao estado 7
+    fun_decl_head    ir ao estado 8
+    type_specifier   ir ao estado 9
+
+
+Estado 5
+
+    4 declaration_list: declaration .
+
+    $padrão  reduzir usando a regra 4 (declaration_list)
+
+
+Estado 6
+
+    6 declaration: var_declaration .
+
+    $padrão  reduzir usando a regra 6 (declaration)
+
+
+Estado 7
+
+    5 declaration: fun_declaration .
+
+    $padrão  reduzir usando a regra 5 (declaration)
+
+
+Estado 8
+
+   10 fun_declaration: fun_decl_head . params R_PAR $@1 compound_stmt
+
+    VOID  deslocar, e ir ao estado 12
+
+    VOID      [reduzir usando a regra 14 ($@2)]
+    $padrão  reduzir usando a regra 14 ($@2)
+
+    params  ir ao estado 13
+    $@2     ir ao estado 14
+
+
+Estado 9
+
+    7 var_declaration: type_specifier . ID SEMIC
+    8                | type_specifier . ID L_BRA NUM R_BRA SEMIC
+   11 fun_decl_head: type_specifier . ID L_PAR
+
+    ID  deslocar, e ir ao estado 15
+
+
+Estado 10
+
+    0 $accept: program $end .
+
+    $padrão  aceitar
+
+
+Estado 11
+
+    3 declaration_list: declaration_list declaration .
+
+    $padrão  reduzir usando a regra 3 (declaration_list)
+
+
+Estado 12
+
+   16 params: VOID .
+
+    $padrão  reduzir usando a regra 16 (params)
+
+
+Estado 13
+
+   10 fun_declaration: fun_decl_head params . R_PAR $@1 compound_stmt
+
+    R_PAR  deslocar, e ir ao estado 16
+
+
+Estado 14
+
+   15 params: $@2 . param_list
+
+    INT   deslocar, e ir ao estado 1
+    VOID  deslocar, e ir ao estado 2
+
+    type_specifier  ir ao estado 17
+    param_list      ir ao estado 18
+    param           ir ao estado 19
+
+
+Estado 15
+
+    7 var_declaration: type_specifier ID . SEMIC
+    8                | type_specifier ID . L_BRA NUM R_BRA SEMIC
+   11 fun_decl_head: type_specifier ID . L_PAR
+
+    L_PAR  deslocar, e ir ao estado 20
+    L_BRA  deslocar, e ir ao estado 21
+    SEMIC  deslocar, e ir ao estado 22
+
+
+Estado 16
+
+   10 fun_declaration: fun_decl_head params R_PAR . $@1 compound_stmt
+
+    $padrão  reduzir usando a regra 9 ($@1)
+
+    $@1  ir ao estado 23
+
+
+Estado 17
+
+   19 param: type_specifier . ID
+   20      | type_specifier . ID L_BRA R_BRA
+
+    ID  deslocar, e ir ao estado 24
+
+
+Estado 18
+
+   15 params: $@2 param_list .
+   17 param_list: param_list . COMMA param
+
+    COMMA  deslocar, e ir ao estado 25
+
+    $padrão  reduzir usando a regra 15 (params)
+
+
+Estado 19
+
+   18 param_list: param .
+
+    $padrão  reduzir usando a regra 18 (param_list)
+
+
+Estado 20
+
+   11 fun_decl_head: type_specifier ID L_PAR .
+
+    $padrão  reduzir usando a regra 11 (fun_decl_head)
+
+
+Estado 21
+
+    8 var_declaration: type_specifier ID L_BRA . NUM R_BRA SEMIC
+
+    NUM  deslocar, e ir ao estado 26
+
+
+Estado 22
+
+    7 var_declaration: type_specifier ID SEMIC .
+
+    $padrão  reduzir usando a regra 7 (var_declaration)
+
+
+Estado 23
+
+   10 fun_declaration: fun_decl_head params R_PAR $@1 . compound_stmt
+
+    L_CUR  deslocar, e ir ao estado 27
+
+    compound_stmt  ir ao estado 28
+    open_compd     ir ao estado 29
+
+
+Estado 24
+
+   19 param: type_specifier ID .
+   20      | type_specifier ID . L_BRA R_BRA
+
+    L_BRA  deslocar, e ir ao estado 30
+
+    $padrão  reduzir usando a regra 19 (param)
+
+
+Estado 25
+
+   17 param_list: param_list COMMA . param
+
+    INT   deslocar, e ir ao estado 1
+    VOID  deslocar, e ir ao estado 2
+
+    type_specifier  ir ao estado 17
+    param           ir ao estado 31
+
+
+Estado 26
+
+    8 var_declaration: type_specifier ID L_BRA NUM . R_BRA SEMIC
+
+    R_BRA  deslocar, e ir ao estado 32
+
+
+Estado 27
+
+   22 open_compd: L_CUR .
+
+    $padrão  reduzir usando a regra 22 (open_compd)
+
+
+Estado 28
+
+   10 fun_declaration: fun_decl_head params R_PAR $@1 compound_stmt .
+
+    $padrão  reduzir usando a regra 10 (fun_declaration)
+
+
+Estado 29
+
+   21 compound_stmt: open_compd . local_declarations statement_list close_compd
+
+    $padrão  reduzir usando a regra 24 (local_declarations)
+
+    local_declarations  ir ao estado 33
+
+
+Estado 30
+
+   20 param: type_specifier ID L_BRA . R_BRA
+
+    R_BRA  deslocar, e ir ao estado 34
+
+
+Estado 31
+
+   17 param_list: param_list COMMA param .
+
+    $padrão  reduzir usando a regra 17 (param_list)
+
+
+Estado 32
+
+    8 var_declaration: type_specifier ID L_BRA NUM R_BRA . SEMIC
+
+    SEMIC  deslocar, e ir ao estado 35
+
+
+Estado 33
+
+   21 compound_stmt: open_compd local_declarations . statement_list close_compd
+   25 local_declarations: local_declarations . var_declaration
+
+    INT   deslocar, e ir ao estado 1
+    VOID  deslocar, e ir ao estado 2
+
+    $padrão  reduzir usando a regra 26 (statement_list)
+
+    var_declaration  ir ao estado 36
+    type_specifier   ir ao estado 37
+    statement_list   ir ao estado 38
+
+
+Estado 34
+
+   20 param: type_specifier ID L_BRA R_BRA .
+
+    $padrão  reduzir usando a regra 20 (param)
+
+
+Estado 35
+
+    8 var_declaration: type_specifier ID L_BRA NUM R_BRA SEMIC .
+
+    $padrão  reduzir usando a regra 8 (var_declaration)
+
+
+Estado 36
+
+   25 local_declarations: local_declarations var_declaration .
+
+    $padrão  reduzir usando a regra 25 (local_declarations)
+
+
+Estado 37
+
+    7 var_declaration: type_specifier . ID SEMIC
+    8                | type_specifier . ID L_BRA NUM R_BRA SEMIC
+
+    ID  deslocar, e ir ao estado 39
+
+
+Estado 38
+
+   21 compound_stmt: open_compd local_declarations statement_list . close_compd
+   27 statement_list: statement_list . statement
+
+    NUM    deslocar, e ir ao estado 40
+    ID     deslocar, e ir ao estado 41
+    L_PAR  deslocar, e ir ao estado 42
+    L_CUR  deslocar, e ir ao estado 27
+    R_CUR  deslocar, e ir ao estado 43
+    SEMIC  deslocar, e ir ao estado 44
+    IF     deslocar, e ir ao estado 45
+    WHILE  deslocar, e ir ao estado 46
+    RET    deslocar, e ir ao estado 47
+
+    compound_stmt        ir ao estado 48
+    open_compd           ir ao estado 29
+    close_compd          ir ao estado 49
+    statement            ir ao estado 50
+    selection_stmt       ir ao estado 51
+    selection_head       ir ao estado 52
+    iteration_stmt       ir ao estado 53
+    iteration_head       ir ao estado 54
+    return_stmt          ir ao estado 55
+    expression_stmt      ir ao estado 56
+    expression           ir ao estado 57
+    simple_expression    ir ao estado 58
+    additive_expression  ir ao estado 59
+    term                 ir ao estado 60
+    factor               ir ao estado 61
+    var                  ir ao estado 62
+    call                 ir ao estado 63
+
+
+Estado 39
+
+    7 var_declaration: type_specifier ID . SEMIC
+    8                | type_specifier ID . L_BRA NUM R_BRA SEMIC
+
+    L_BRA  deslocar, e ir ao estado 21
+    SEMIC  deslocar, e ir ao estado 22
+
+
+Estado 40
+
+   69 factor: NUM .
+
+    $padrão  reduzir usando a regra 69 (factor)
+
+
+Estado 41
+
+   70 var: ID .
+   72    | ID . L_BRA $@7 expression R_BRA
+   73 call: ID . L_PAR args R_PAR
+
+    L_PAR  deslocar, e ir ao estado 64
+    L_BRA  deslocar, e ir ao estado 65
+
+    $padrão  reduzir usando a regra 70 (var)
+
+
+Estado 42
+
+   66 factor: L_PAR . expression R_PAR
+
+    NUM    deslocar, e ir ao estado 40
+    ID     deslocar, e ir ao estado 41
+    L_PAR  deslocar, e ir ao estado 42
+
+    expression           ir ao estado 66
+    simple_expression    ir ao estado 58
+    additive_expression  ir ao estado 59
+    term                 ir ao estado 60
+    factor               ir ao estado 61
+    var                  ir ao estado 62
+    call                 ir ao estado 63
+
+
+Estado 43
+
+   23 close_compd: R_CUR .
+
+    $padrão  reduzir usando a regra 23 (close_compd)
+
+
+Estado 44
+
+   43 expression_stmt: SEMIC .
+
+    $padrão  reduzir usando a regra 43 (expression_stmt)
+
+
+Estado 45
+
+   35 selection_head: IF . L_PAR expression R_PAR
+
+    L_PAR  deslocar, e ir ao estado 67
+
+
+Estado 46
+
+   37 iteration_head: WHILE . L_PAR expression R_PAR
+
+    L_PAR  deslocar, e ir ao estado 68
+
+
+Estado 47
+
+   40 return_stmt: RET . SEMIC
+   41            | RET . expression SEMIC
+
+    NUM    deslocar, e ir ao estado 40
+    ID     deslocar, e ir ao estado 41
+    L_PAR  deslocar, e ir ao estado 42
+    SEMIC  deslocar, e ir ao estado 69
+
+    expression           ir ao estado 70
+    simple_expression    ir ao estado 58
+    additive_expression  ir ao estado 59
+    term                 ir ao estado 60
+    factor               ir ao estado 61
+    var                  ir ao estado 62
+    call                 ir ao estado 63
+
+
+Estado 48
+
+   29 statement: compound_stmt .
+
+    $padrão  reduzir usando a regra 29 (statement)
+
+
+Estado 49
+
+   21 compound_stmt: open_compd local_declarations statement_list close_compd .
+
+    $padrão  reduzir usando a regra 21 (compound_stmt)
+
+
+Estado 50
+
+   27 statement_list: statement_list statement .
+
+    $padrão  reduzir usando a regra 27 (statement_list)
+
+
+Estado 51
+
+   30 statement: selection_stmt .
+
+    $padrão  reduzir usando a regra 30 (statement)
+
+
+Estado 52
+
+   33 selection_stmt: selection_head . scope_stmt
+   34               | selection_head . scope_stmt ELSE scope_stmt
+
+    NUM    deslocar, e ir ao estado 40
+    ID     deslocar, e ir ao estado 41
+    L_PAR  deslocar, e ir ao estado 42
+    L_CUR  deslocar, e ir ao estado 27
+    SEMIC  deslocar, e ir ao estado 44
+    IF     deslocar, e ir ao estado 45
+    WHILE  deslocar, e ir ao estado 46
+    RET    deslocar, e ir ao estado 47
+
+    compound_stmt        ir ao estado 71
+    open_compd           ir ao estado 29
+    statement            ir ao estado 72
+    selection_stmt       ir ao estado 51
+    selection_head       ir ao estado 52
+    iteration_stmt       ir ao estado 53
+    iteration_head       ir ao estado 54
+    scope_stmt           ir ao estado 73
+    return_stmt          ir ao estado 55
+    expression_stmt      ir ao estado 56
+    expression           ir ao estado 57
+    simple_expression    ir ao estado 58
+    additive_expression  ir ao estado 59
+    term                 ir ao estado 60
+    factor               ir ao estado 61
+    var                  ir ao estado 62
+    call                 ir ao estado 63
+
+
+Estado 53
+
+   31 statement: iteration_stmt .
+
+    $padrão  reduzir usando a regra 31 (statement)
+
+
+Estado 54
+
+   36 iteration_stmt: iteration_head . scope_stmt
+
+    NUM    deslocar, e ir ao estado 40
+    ID     deslocar, e ir ao estado 41
+    L_PAR  deslocar, e ir ao estado 42
+    L_CUR  deslocar, e ir ao estado 27
+    SEMIC  deslocar, e ir ao estado 44
+    IF     deslocar, e ir ao estado 45
+    WHILE  deslocar, e ir ao estado 46
+    RET    deslocar, e ir ao estado 47
+
+    compound_stmt        ir ao estado 71
+    open_compd           ir ao estado 29
+    statement            ir ao estado 72
+    selection_stmt       ir ao estado 51
+    selection_head       ir ao estado 52
+    iteration_stmt       ir ao estado 53
+    iteration_head       ir ao estado 54
+    scope_stmt           ir ao estado 74
+    return_stmt          ir ao estado 55
+    expression_stmt      ir ao estado 56
+    expression           ir ao estado 57
+    simple_expression    ir ao estado 58
+    additive_expression  ir ao estado 59
+    term                 ir ao estado 60
+    factor               ir ao estado 61
+    var                  ir ao estado 62
+    call                 ir ao estado 63
+
+
+Estado 55
+
+   32 statement: return_stmt .
+
+    $padrão  reduzir usando a regra 32 (statement)
+
+
+Estado 56
+
+   28 statement: expression_stmt .
+
+    $padrão  reduzir usando a regra 28 (statement)
+
+
+Estado 57
+
+   42 expression_stmt: expression . SEMIC
+
+    SEMIC  deslocar, e ir ao estado 75
+
+
+Estado 58
+
+   46 expression: simple_expression .
+
+    $padrão  reduzir usando a regra 46 (expression)
+
+
+Estado 59
+
+   48 simple_expression: additive_expression . relop $@4 additive_expression
+   49                  | additive_expression .
+   57 additive_expression: additive_expression . addop $@5 term
+
+    ADD  deslocar, e ir ao estado 76
+    SUB  deslocar, e ir ao estado 77
+    LT   deslocar, e ir ao estado 78
+    GT   deslocar, e ir ao estado 79
+    LTE  deslocar, e ir ao estado 80
+    GTE  deslocar, e ir ao estado 81
+    EQ   deslocar, e ir ao estado 82
+    NEQ  deslocar, e ir ao estado 83
+
+    $padrão  reduzir usando a regra 49 (simple_expression)
+
+    relop  ir ao estado 84
+    addop  ir ao estado 85
+
+
+Estado 60
+
+   58 additive_expression: term .
+   62 term: term . mulop $@6 factor
+
+    MUL  deslocar, e ir ao estado 86
+    DIV  deslocar, e ir ao estado 87
+
+    $padrão  reduzir usando a regra 58 (additive_expression)
+
+    mulop  ir ao estado 88
+
+
+Estado 61
+
+   63 term: factor .
+
+    $padrão  reduzir usando a regra 63 (term)
+
+
+Estado 62
+
+   45 expression: var . ASGN $@3 expression
+   67 factor: var .
+
+    ASGN  deslocar, e ir ao estado 89
+
+    $padrão  reduzir usando a regra 67 (factor)
+
+
+Estado 63
+
+   68 factor: call .
+
+    $padrão  reduzir usando a regra 68 (factor)
+
+
+Estado 64
+
+   73 call: ID L_PAR . args R_PAR
+
+    NUM    deslocar, e ir ao estado 40
+    ID     deslocar, e ir ao estado 41
+    L_PAR  deslocar, e ir ao estado 42
+
+    $padrão  reduzir usando a regra 74 (args)
+
+    expression           ir ao estado 90
+    simple_expression    ir ao estado 58
+    additive_expression  ir ao estado 59
+    term                 ir ao estado 60
+    factor               ir ao estado 61
+    var                  ir ao estado 62
+    call                 ir ao estado 63
+    args                 ir ao estado 91
+    arg_list             ir ao estado 92
+
+
+Estado 65
+
+   72 var: ID L_BRA . $@7 expression R_BRA
+
+    $padrão  reduzir usando a regra 71 ($@7)
+
+    $@7  ir ao estado 93
+
+
+Estado 66
+
+   66 factor: L_PAR expression . R_PAR
+
+    R_PAR  deslocar, e ir ao estado 94
+
+
+Estado 67
+
+   35 selection_head: IF L_PAR . expression R_PAR
+
+    NUM    deslocar, e ir ao estado 40
+    ID     deslocar, e ir ao estado 41
+    L_PAR  deslocar, e ir ao estado 42
+
+    expression           ir ao estado 95
+    simple_expression    ir ao estado 58
+    additive_expression  ir ao estado 59
+    term                 ir ao estado 60
+    factor               ir ao estado 61
+    var                  ir ao estado 62
+    call                 ir ao estado 63
+
+
+Estado 68
+
+   37 iteration_head: WHILE L_PAR . expression R_PAR
+
+    NUM    deslocar, e ir ao estado 40
+    ID     deslocar, e ir ao estado 41
+    L_PAR  deslocar, e ir ao estado 42
+
+    expression           ir ao estado 96
+    simple_expression    ir ao estado 58
+    additive_expression  ir ao estado 59
+    term                 ir ao estado 60
+    factor               ir ao estado 61
+    var                  ir ao estado 62
+    call                 ir ao estado 63
+
+
+Estado 69
+
+   40 return_stmt: RET SEMIC .
+
+    $padrão  reduzir usando a regra 40 (return_stmt)
+
+
+Estado 70
+
+   41 return_stmt: RET expression . SEMIC
+
+    SEMIC  deslocar, e ir ao estado 97
+
+
+Estado 71
+
+   29 statement: compound_stmt .
+   39 scope_stmt: compound_stmt .
+
+    NUM       reduzir usando a regra 29 (statement)
+    NUM       [reduzir usando a regra 39 (scope_stmt)]
+    ID        reduzir usando a regra 29 (statement)
+    ID        [reduzir usando a regra 39 (scope_stmt)]
+    L_PAR     reduzir usando a regra 29 (statement)
+    L_PAR     [reduzir usando a regra 39 (scope_stmt)]
+    L_CUR     reduzir usando a regra 29 (statement)
+    L_CUR     [reduzir usando a regra 39 (scope_stmt)]
+    R_CUR     reduzir usando a regra 29 (statement)
+    R_CUR     [reduzir usando a regra 39 (scope_stmt)]
+    SEMIC     reduzir usando a regra 29 (statement)
+    SEMIC     [reduzir usando a regra 39 (scope_stmt)]
+    IF        reduzir usando a regra 29 (statement)
+    IF        [reduzir usando a regra 39 (scope_stmt)]
+    ELSE      reduzir usando a regra 29 (statement)
+    ELSE      [reduzir usando a regra 39 (scope_stmt)]
+    WHILE     reduzir usando a regra 29 (statement)
+    WHILE     [reduzir usando a regra 39 (scope_stmt)]
+    RET       reduzir usando a regra 29 (statement)
+    RET       [reduzir usando a regra 39 (scope_stmt)]
+    $padrão  reduzir usando a regra 29 (statement)
+
+
+Estado 72
+
+   38 scope_stmt: statement .
+
+    $padrão  reduzir usando a regra 38 (scope_stmt)
+
+
+Estado 73
+
+   33 selection_stmt: selection_head scope_stmt .
+   34               | selection_head scope_stmt . ELSE scope_stmt
+
+    ELSE  deslocar, e ir ao estado 98
+
+    ELSE      [reduzir usando a regra 33 (selection_stmt)]
+    $padrão  reduzir usando a regra 33 (selection_stmt)
+
+
+Estado 74
+
+   36 iteration_stmt: iteration_head scope_stmt .
+
+    $padrão  reduzir usando a regra 36 (iteration_stmt)
+
+
+Estado 75
+
+   42 expression_stmt: expression SEMIC .
+
+    $padrão  reduzir usando a regra 42 (expression_stmt)
+
+
+Estado 76
+
+   59 addop: ADD .
+
+    $padrão  reduzir usando a regra 59 (addop)
+
+
+Estado 77
+
+   60 addop: SUB .
+
+    $padrão  reduzir usando a regra 60 (addop)
+
+
+Estado 78
+
+   52 relop: LT .
+
+    $padrão  reduzir usando a regra 52 (relop)
+
+
+Estado 79
+
+   53 relop: GT .
+
+    $padrão  reduzir usando a regra 53 (relop)
+
+
+Estado 80
+
+   50 relop: LTE .
+
+    $padrão  reduzir usando a regra 50 (relop)
+
+
+Estado 81
+
+   51 relop: GTE .
+
+    $padrão  reduzir usando a regra 51 (relop)
+
+
+Estado 82
+
+   54 relop: EQ .
+
+    $padrão  reduzir usando a regra 54 (relop)
+
+
+Estado 83
+
+   55 relop: NEQ .
+
+    $padrão  reduzir usando a regra 55 (relop)
+
+
+Estado 84
+
+   48 simple_expression: additive_expression relop . $@4 additive_expression
+
+    $padrão  reduzir usando a regra 47 ($@4)
+
+    $@4  ir ao estado 99
+
+
+Estado 85
+
+   57 additive_expression: additive_expression addop . $@5 term
+
+    $padrão  reduzir usando a regra 56 ($@5)
+
+    $@5  ir ao estado 100
+
+
+Estado 86
+
+   64 mulop: MUL .
+
+    $padrão  reduzir usando a regra 64 (mulop)
+
+
+Estado 87
+
+   65 mulop: DIV .
+
+    $padrão  reduzir usando a regra 65 (mulop)
+
+
+Estado 88
+
+   62 term: term mulop . $@6 factor
+
+    $padrão  reduzir usando a regra 61 ($@6)
+
+    $@6  ir ao estado 101
+
+
+Estado 89
+
+   45 expression: var ASGN . $@3 expression
+
+    $padrão  reduzir usando a regra 44 ($@3)
+
+    $@3  ir ao estado 102
+
+
+Estado 90
+
+   77 arg_list: expression .
+
+    $padrão  reduzir usando a regra 77 (arg_list)
+
+
+Estado 91
+
+   73 call: ID L_PAR args . R_PAR
+
+    R_PAR  deslocar, e ir ao estado 103
+
+
+Estado 92
+
+   75 args: arg_list .
+   76 arg_list: arg_list . COMMA expression
+
+    COMMA  deslocar, e ir ao estado 104
+
+    $padrão  reduzir usando a regra 75 (args)
+
+
+Estado 93
+
+   72 var: ID L_BRA $@7 . expression R_BRA
+
+    NUM    deslocar, e ir ao estado 40
+    ID     deslocar, e ir ao estado 41
+    L_PAR  deslocar, e ir ao estado 42
+
+    expression           ir ao estado 105
+    simple_expression    ir ao estado 58
+    additive_expression  ir ao estado 59
+    term                 ir ao estado 60
+    factor               ir ao estado 61
+    var                  ir ao estado 62
+    call                 ir ao estado 63
+
+
+Estado 94
+
+   66 factor: L_PAR expression R_PAR .
+
+    $padrão  reduzir usando a regra 66 (factor)
+
+
+Estado 95
+
+   35 selection_head: IF L_PAR expression . R_PAR
+
+    R_PAR  deslocar, e ir ao estado 106
+
+
+Estado 96
+
+   37 iteration_head: WHILE L_PAR expression . R_PAR
+
+    R_PAR  deslocar, e ir ao estado 107
+
+
+Estado 97
+
+   41 return_stmt: RET expression SEMIC .
+
+    $padrão  reduzir usando a regra 41 (return_stmt)
+
+
+Estado 98
+
+   34 selection_stmt: selection_head scope_stmt ELSE . scope_stmt
+
+    NUM    deslocar, e ir ao estado 40
+    ID     deslocar, e ir ao estado 41
+    L_PAR  deslocar, e ir ao estado 42
+    L_CUR  deslocar, e ir ao estado 27
+    SEMIC  deslocar, e ir ao estado 44
+    IF     deslocar, e ir ao estado 45
+    WHILE  deslocar, e ir ao estado 46
+    RET    deslocar, e ir ao estado 47
+
+    compound_stmt        ir ao estado 71
+    open_compd           ir ao estado 29
+    statement            ir ao estado 72
+    selection_stmt       ir ao estado 51
+    selection_head       ir ao estado 52
+    iteration_stmt       ir ao estado 53
+    iteration_head       ir ao estado 54
+    scope_stmt           ir ao estado 108
+    return_stmt          ir ao estado 55
+    expression_stmt      ir ao estado 56
+    expression           ir ao estado 57
+    simple_expression    ir ao estado 58
+    additive_expression  ir ao estado 59
+    term                 ir ao estado 60
+    factor               ir ao estado 61
+    var                  ir ao estado 62
+    call                 ir ao estado 63
+
+
+Estado 99
+
+   48 simple_expression: additive_expression relop $@4 . additive_expression
+
+    NUM    deslocar, e ir ao estado 40
+    ID     deslocar, e ir ao estado 41
+    L_PAR  deslocar, e ir ao estado 42
+
+    additive_expression  ir ao estado 109
+    term                 ir ao estado 60
+    factor               ir ao estado 61
+    var                  ir ao estado 110
+    call                 ir ao estado 63
+
+
+Estado 100
+
+   57 additive_expression: additive_expression addop $@5 . term
+
+    NUM    deslocar, e ir ao estado 40
+    ID     deslocar, e ir ao estado 41
+    L_PAR  deslocar, e ir ao estado 42
+
+    term    ir ao estado 111
+    factor  ir ao estado 61
+    var     ir ao estado 110
+    call    ir ao estado 63
+
+
+Estado 101
+
+   62 term: term mulop $@6 . factor
+
+    NUM    deslocar, e ir ao estado 40
+    ID     deslocar, e ir ao estado 41
+    L_PAR  deslocar, e ir ao estado 42
+
+    factor  ir ao estado 112
+    var     ir ao estado 110
+    call    ir ao estado 63
+
+
+Estado 102
+
+   45 expression: var ASGN $@3 . expression
+
+    NUM    deslocar, e ir ao estado 40
+    ID     deslocar, e ir ao estado 41
+    L_PAR  deslocar, e ir ao estado 42
+
+    expression           ir ao estado 113
+    simple_expression    ir ao estado 58
+    additive_expression  ir ao estado 59
+    term                 ir ao estado 60
+    factor               ir ao estado 61
+    var                  ir ao estado 62
+    call                 ir ao estado 63
+
+
+Estado 103
+
+   73 call: ID L_PAR args R_PAR .
+
+    $padrão  reduzir usando a regra 73 (call)
+
+
+Estado 104
+
+   76 arg_list: arg_list COMMA . expression
+
+    NUM    deslocar, e ir ao estado 40
+    ID     deslocar, e ir ao estado 41
+    L_PAR  deslocar, e ir ao estado 42
+
+    expression           ir ao estado 114
+    simple_expression    ir ao estado 58
+    additive_expression  ir ao estado 59
+    term                 ir ao estado 60
+    factor               ir ao estado 61
+    var                  ir ao estado 62
+    call                 ir ao estado 63
+
+
+Estado 105
+
+   72 var: ID L_BRA $@7 expression . R_BRA
+
+    R_BRA  deslocar, e ir ao estado 115
+
+
+Estado 106
+
+   35 selection_head: IF L_PAR expression R_PAR .
+
+    $padrão  reduzir usando a regra 35 (selection_head)
+
+
+Estado 107
+
+   37 iteration_head: WHILE L_PAR expression R_PAR .
+
+    $padrão  reduzir usando a regra 37 (iteration_head)
+
+
+Estado 108
+
+   34 selection_stmt: selection_head scope_stmt ELSE scope_stmt .
+
+    $padrão  reduzir usando a regra 34 (selection_stmt)
+
+
+Estado 109
+
+   48 simple_expression: additive_expression relop $@4 additive_expression .
+   57 additive_expression: additive_expression . addop $@5 term
+
+    ADD  deslocar, e ir ao estado 76
+    SUB  deslocar, e ir ao estado 77
+
+    $padrão  reduzir usando a regra 48 (simple_expression)
+
+    addop  ir ao estado 85
+
+
+Estado 110
+
+   67 factor: var .
+
+    $padrão  reduzir usando a regra 67 (factor)
+
+
+Estado 111
+
+   57 additive_expression: additive_expression addop $@5 term .
+   62 term: term . mulop $@6 factor
+
+    MUL  deslocar, e ir ao estado 86
+    DIV  deslocar, e ir ao estado 87
+
+    $padrão  reduzir usando a regra 57 (additive_expression)
+
+    mulop  ir ao estado 88
+
+
+Estado 112
+
+   62 term: term mulop $@6 factor .
+
+    $padrão  reduzir usando a regra 62 (term)
+
+
+Estado 113
+
+   45 expression: var ASGN $@3 expression .
+
+    $padrão  reduzir usando a regra 45 (expression)
+
+
+Estado 114
+
+   76 arg_list: arg_list COMMA expression .
+
+    $padrão  reduzir usando a regra 76 (arg_list)
+
+
+Estado 115
+
+   72 var: ID L_BRA $@7 expression R_BRA .
+
+    $padrão  reduzir usando a regra 72 (var)

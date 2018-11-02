@@ -794,6 +794,7 @@ void close_scope () {
         if ((funcs_stack[current_func].def.type != "void")) {
             if (!funcs_stack[current_func].has_returned) {
                 yyerror("closing non-void function without returning a value");
+                //YYERROR; ???
                 return;
             }
         }

@@ -203,7 +203,7 @@ param:               type_specifier ID  {
                                                 YYERROR;
                                             }
                                         } |
-                     type_specifier ID L_BRA R_BRA  { 
+                     type_specifier ID L_BRA R_BRA { 
 
                                             string convert_1 ($1), //type
                                                    convert_2 ($2); //name
@@ -245,7 +245,7 @@ statement:           expression_stmt |
 
 selection_stmt:      selection_head scope_stmt                 { write_to_tree("]"); } |
                      selection_head scope_stmt ELSE scope_stmt { write_to_tree("]"); } ;
-selection_head:      IF L_PAR expression R_PAR  {
+selection_head:      IF L_PAR expression R_PAR {
 
                             string convert ($3);
 
@@ -261,7 +261,7 @@ selection_head:      IF L_PAR expression R_PAR  {
                         } ;
 
 iteration_stmt:      iteration_head scope_stmt { write_to_tree("]"); } ;
-iteration_head:      WHILE L_PAR expression R_PAR   {
+iteration_head:      WHILE L_PAR expression R_PAR {
 
                             string convert ($3);
 
@@ -488,10 +488,10 @@ term:                term mulop
 mulop:               MUL |
                      DIV ;
 
-factor:              L_PAR expression R_PAR { $$ = $2; }                                                            |
-                     var   { /* string convert ($1); cout << "call var of type "  << convert << endl; */ $$ = $1; } |
-                     call  { /* string convert ($1); cout << "call func of type " << convert << endl; */ $$ = $1; } |
-                     NUM   { 
+factor:              L_PAR expression R_PAR { $$ = $2; }                                                             |
+                     var    { /* string convert ($1); cout << "call var of type "  << convert << endl; */ $$ = $1; } |
+                     call   { /* string convert ($1); cout << "call func of type " << convert << endl; */ $$ = $1; } |
+                     NUM    { 
                                 if (($1 < 2147483648)  &&
                                     ($1 > -2147483648)) {
 
@@ -528,7 +528,7 @@ var:                 ID {
                         } |
                      ID L_BRA
                      { string convert_1 ($1); expr_aux.push_back("[var [" + convert_1 + "]"); }
-                     expression R_BRA  {
+                     expression R_BRA {
 
                             string convert_1 ($1),
                                    convert_4 ($4);                                   
@@ -604,7 +604,7 @@ call:                ID L_PAR args R_PAR {
 args:                /* empty */ { expr_aux.push_back(""); vector<string> empty; $$ = &empty; } |
                      arg_list { $$ = $1; }                                                      ;
 
-arg_list:            arg_list COMMA expression  { 
+arg_list:            arg_list COMMA expression { 
 
                                     string convert ($3); // <---
                                     

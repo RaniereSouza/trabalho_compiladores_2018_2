@@ -35,7 +35,7 @@
     bool get_func        (string n, func_t          &holder);
     bool comp_args       (func_t f, vector<string>* args);
     bool set_func_return ();
-    void close_scope     ();
+    bool close_scope     ();
 %}
 
 
@@ -229,7 +229,7 @@ param:               type_specifier ID  {
 
 compound_stmt:       open_compd local_declarations statement_list close_compd                                            ;
 open_compd:          L_CUR { write_to_tree("[compound-stmt "); open_scope(next_scope_type); next_scope_type = "block"; } ;
-close_compd:         R_CUR { write_to_tree("]"); close_scope(); }                                                        ;
+close_compd:         R_CUR { write_to_tree("]"); if (!close_scope()) YYERROR; }                                          ;
 
 local_declarations:  /* empty */                        |
                      local_declarations var_declaration ;
@@ -276,8 +276,13 @@ iteration_head:      WHILE L_PAR expression R_PAR   {
                             }
                         } ;              
 
-scope_stmt:          statement                         |
-                     compound_stmt { /*redundante?*/ } ;
+scope_stmt:          return_stmt { if (current_func >= 0) funcs_stack[current_func].return_counter = 0; } |
+                     common_stmt                                                                          ;
+
+common_stmt:         expression_stmt |
+                     compound_stmt   |
+                     selection_stmt  |
+                     iteration_stmt  ;
 
 return_stmt:         RET SEMIC  {
 
@@ -769,7 +774,7 @@ bool set_func_return () {
     return false;
 }
 
-void close_scope () {
+bool close_scope () {
 
     if ((current_func >= 0)) {
         if ((funcs_stack[current_func].return_counter > 0)) { // decrementing conditional return in this scope
@@ -794,21 +799,20 @@ void close_scope () {
         if ((funcs_stack[current_func].def.type != "void")) {
             if (!funcs_stack[current_func].has_returned) {
                 yyerror("closing non-void function without returning a value");
-                //YYERROR; ???
-                return;
+                return false;
             }
         }
 
         //cout << "closing of " << vars_stack.back().type << " scope" << endl;
         vars_stack.pop_back(); // pop the scope marker
         current_func = -1;
-        close_scope(); // pop function parameters
-        return;
+        return close_scope(); // pop function parameters
     }
 
     //cout << "closing of " << vars_stack.back().type << " scope" << endl;
     vars_stack.pop_back(); // pop the scope marker
     nesting_counter--;
+    return true;
 }
 
 void print_symbol_table () {

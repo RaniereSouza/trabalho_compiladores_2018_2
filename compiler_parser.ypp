@@ -276,8 +276,8 @@ iteration_head:      WHILE L_PAR expression R_PAR   {
                             }
                         } ;              
 
-scope_stmt:          statement     |
-                     compound_stmt ;
+scope_stmt:          statement                         |
+                     compound_stmt { /*redundante?*/ } ;
 
 return_stmt:         RET SEMIC  {
 

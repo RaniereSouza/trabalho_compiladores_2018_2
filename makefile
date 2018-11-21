@@ -14,7 +14,7 @@ CFLAGS          = -g -Wall -std=c++11 #COMPILER FLAGS
 BISON_FLAGS     = -d -v #BISON FLAGS
 BISON_SOURCE    = compiler_parser.ypp #BISON FILE WITH THE GRAMMAR AND THE SEMANTIC ACTIONS
 COMP_SOURCES    = compiler_scanner.cpp compiler_parser.tab.cpp compiler_main.cpp #SOURCE FILES TO COMPILE FINAL PROGRAM
-COMP_OUTPUT     = sintatico #NAME OF THE GENERATED EXECUTABLE
+COMP_OUTPUT     = compilador #NAME OF THE GENERATED EXECUTABLE
 GEN_LOCAL_FILES = $(COMP_OUTPUT) compiler_tokens.out compiler_parse_tree.syn compiler_parser.output compiler_main.o compiler_parser.tab.o compiler_scanner.o $(YYFILES) #GENERATED LOCAL FILES
 EXEC_PARAMS     = compiler_code.in compiler_parse_tree.syn #PARAMETERS TO PASS TO GENERATED PROGRAM
 EXEC_OUT_PATH   = ~/Documentos/compiler_execution_output.txt #FILE TO SAVE CODE PRINTS

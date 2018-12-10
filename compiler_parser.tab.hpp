@@ -80,7 +80,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 42 "compiler_parser.ypp" /* yacc.c:1909  */
+#line 26 "compiler_parser.ypp" /* yacc.c:1909  */
 
     long  int       number;
     const char*     type_name;

@@ -2,19 +2,6 @@
     #define  YYDEBUG 1
     #include "compiler_headings.hpp"
 
-    
-    struct name_t {
-        string type;
-        string name;
-    };
-
-    struct func_t {
-        name_t         def;
-        vector<name_t> args;
-        bool           has_returned;
-        int            return_counter;
-    };
-
     vector<name_t> vars_stack;
     vector<func_t> funcs_stack =    {
                                         {{"int",  "input"},   {},             true,  1}, // int input (void) {...}
@@ -28,14 +15,11 @@
     string next_scope_type  = "block",
            expr_acc         = "";
 
-    void open_scope      (string t);
-    bool create_var      (string t, string          n);
     bool get_var         (string n, name_t          &holder);
     bool create_func     (string t, string          n);
     bool get_func        (string n, func_t          &holder);
     bool comp_args       (func_t f, vector<string>* args);
     bool set_func_return ();
-    bool close_scope     ();
 %}
 
 
@@ -203,7 +187,7 @@ param:               type_specifier ID  {
                                                 YYERROR;
                                             }
                                         } |
-                     type_specifier ID L_BRA R_BRA { 
+                     type_specifier ID L_BRA R_BRA  { 
 
                                             string convert_1 ($1), //type
                                                    convert_2 ($2); //name
@@ -488,10 +472,10 @@ term:                term mulop
 mulop:               MUL |
                      DIV ;
 
-factor:              L_PAR expression R_PAR { $$ = $2; }                                                             |
-                     var    { /* string convert ($1); cout << "call var of type "  << convert << endl; */ $$ = $1; } |
-                     call   { /* string convert ($1); cout << "call func of type " << convert << endl; */ $$ = $1; } |
-                     NUM    { 
+factor:              L_PAR expression R_PAR { $$ = $2; }                                                            |
+                     var   { /* string convert ($1); cout << "call var of type "  << convert << endl; */ $$ = $1; } |
+                     call  { /* string convert ($1); cout << "call func of type " << convert << endl; */ $$ = $1; } |
+                     NUM   { 
                                 if (($1 < 2147483648)  &&
                                     ($1 > -2147483648)) {
 
@@ -528,7 +512,7 @@ var:                 ID {
                         } |
                      ID L_BRA
                      { string convert_1 ($1); expr_aux.push_back("[var [" + convert_1 + "]"); }
-                     expression R_BRA {
+                     expression R_BRA  {
 
                             string convert_1 ($1),
                                    convert_4 ($4);                                   
@@ -571,40 +555,40 @@ var:                 ID {
 
 call:                ID L_PAR args R_PAR { 
 
-                                    string convert ($1);
-                                    func_t holder;                         
+                            string convert ($1);
+                            func_t holder;                         
 
-                                    //free($1);
-                                    //cout << "call of func " << convert    << endl;
-                                    //cout << "args: "        << $3->size() << endl;
+                            //free($1);
+                            //cout << "call of func " << convert    << endl;
+                            //cout << "args: "        << $3->size() << endl;
 
-                                    if ($3->size() > 0) { expr_aux.back() = " " + expr_aux.back(); }
-                                    
-                                    expr_acc = "[call [" + convert + "][args" + expr_aux.back() + "]]";
-                                    expr_aux.pop_back();
+                            if ($3->size() > 0) { expr_aux.back() = " " + expr_aux.back(); }
+                            
+                            expr_acc = "[call [" + convert + "][args" + expr_aux.back() + "]]";
+                            expr_aux.pop_back();
 
-                                    if (get_func(convert, holder)) {
+                            if (get_func(convert, holder)) {
 
-                                        //cout << "params: " << holder.args.size() << endl;
+                                //cout << "params: " << holder.args.size() << endl;
 
-                                        if (!comp_args(holder, $3)) {
-                                            YYERROR;
-                                        }
-                                        else {
-                                            $$ = strdup(holder.def.type.c_str());
-                                        }
+                                if (!comp_args(holder, $3)) {
+                                    YYERROR;
+                                }
+                                else {
+                                    $$ = strdup(holder.def.type.c_str());
+                                }
 
-                                        args_acc.clear();                 
-                                    }                                  
-                                    else {                             
-                                        YYERROR;                      
-                                    }
-                                } ;
+                                args_acc.clear();                 
+                            }                                  
+                            else {                             
+                                YYERROR;                      
+                            }
+                        } ;
 
 args:                /* empty */ { expr_aux.push_back(""); vector<string> empty; $$ = &empty; } |
                      arg_list { $$ = $1; }                                                      ;
 
-arg_list:            arg_list COMMA expression { 
+arg_list:            arg_list COMMA expression  { 
 
                                     string convert ($3); // <---
                                     
@@ -669,6 +653,22 @@ int get_var_index_full (string n) {
     return -1;
 }
 
+string closest_scope_var (string n) {
+    
+    int pos = get_var_index_full(n);
+
+    if (pos >= 0) {
+        for (int i = pos - 1; i >= 0; i--) { // traverse back until global scope
+            
+            if (vars_stack[i].name == "###") {
+                return vars_stack[i].type;
+            }
+        }
+    }
+
+    return "global";
+}
+
 int get_var_index_closest (string n) {
 
     int i = vars_stack.size() - 1;
@@ -718,17 +718,41 @@ bool get_var (string n, name_t &holder) {
     return false;
 }
 
+bool codegen_get_var (string n, name_t &holder) {
+
+    int i = get_var_index_full(n);
+    
+    if (i >= 0) {
+        holder = vars_stack[i];
+        return true;
+    }
+
+    //yyerror("var " + n + " wasn't declared in this scope");
+    return false;
+}
+
 bool create_func (string t, string n) {
 
     for (auto i:funcs_stack) {
         if (i.def.name == n) {
-            yyerror("func " + n + " already declared in this scope");
+            yyerror("func " + n + " already declared");
             return false;
         }
     }
 
     funcs_stack.push_back({{t, n}, {}, false, 0});
     return true;
+}
+
+int get_func_index (string n) {
+
+    for (unsigned int i = 0, len = funcs_stack.size(); i < len; i++) {
+        if (funcs_stack[i].def.name == n) {
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 bool get_func (string n, func_t &holder) {
@@ -740,7 +764,7 @@ bool get_func (string n, func_t &holder) {
         }
     }
 
-    yyerror("func " + n + " wasn't declared in this scope");
+    yyerror("func " + n + " wasn't declared");
     return false;
 }
 

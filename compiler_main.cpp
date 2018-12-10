@@ -1,6 +1,6 @@
 #include "compiler_headings.hpp"
 
-string parser_tree_path;
+string mips_code_path;
 
 int main(int argc, char **argv) {
 
@@ -11,10 +11,14 @@ int main(int argc, char **argv) {
 
     if (gen_tokens_file(argv[1]) == 0) {
 
-        parser_tree_path = argv[2];
-        yyparse();
+        if (yyparse() == 0) {
 
-        exit(EXIT_SUCCESS);
+            mips_code_path = argv[2];
+
+            if (codegen() == 0) {
+                exit(EXIT_SUCCESS);
+            }
+        }
     }
 
     exit(EXIT_FAILURE);

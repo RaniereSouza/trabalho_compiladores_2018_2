@@ -67,19 +67,6 @@
     #define  YYDEBUG 1
     #include "compiler_headings.hpp"
 
-    
-    struct name_t {
-        string type;
-        string name;
-    };
-
-    struct func_t {
-        name_t         def;
-        vector<name_t> args;
-        bool           has_returned;
-        int            return_counter;
-    };
-
     vector<name_t> vars_stack;
     vector<func_t> funcs_stack =    {
                                         {{"int",  "input"},   {},             true,  1}, // int input (void) {...}
@@ -93,16 +80,13 @@
     string next_scope_type  = "block",
            expr_acc         = "";
 
-    void open_scope      (string t);
-    bool create_var      (string t, string          n);
     bool get_var         (string n, name_t          &holder);
     bool create_func     (string t, string          n);
     bool get_func        (string n, func_t          &holder);
     bool comp_args       (func_t f, vector<string>* args);
     bool set_func_return ();
-    bool close_scope     ();
 
-#line 106 "compiler_parser.tab.cpp" /* yacc.c:339  */
+#line 90 "compiler_parser.tab.cpp" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -172,7 +156,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 42 "compiler_parser.ypp" /* yacc.c:355  */
+#line 26 "compiler_parser.ypp" /* yacc.c:355  */
 
     long  int       number;
     const char*     type_name;
@@ -181,7 +165,7 @@ union YYSTYPE
     const char*     keyword;
     vector<string>* arguments;
 
-#line 185 "compiler_parser.tab.cpp" /* yacc.c:355  */
+#line 169 "compiler_parser.tab.cpp" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -198,7 +182,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 202 "compiler_parser.tab.cpp" /* yacc.c:358  */
+#line 186 "compiler_parser.tab.cpp" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -498,15 +482,15 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    72,    72,    76,    97,    98,   100,   101,   103,   125,
-     148,   148,   149,   174,   175,   177,   177,   178,   180,   181,
-     183,   206,   230,   231,   232,   234,   235,   237,   238,   240,
-     241,   242,   243,   244,   246,   247,   248,   263,   264,   279,
-     280,   282,   283,   284,   285,   287,   308,   341,   355,   362,
-     361,   392,   395,   394,   420,   422,   423,   424,   425,   426,
-     427,   430,   429,   455,   457,   458,   461,   460,   486,   488,
-     489,   491,   492,   493,   494,   507,   530,   529,   572,   604,
-     605,   607,   620
+       0,    56,    56,    60,    81,    82,    84,    85,    87,   109,
+     132,   132,   133,   158,   159,   161,   161,   162,   164,   165,
+     167,   190,   214,   215,   216,   218,   219,   221,   222,   224,
+     225,   226,   227,   228,   230,   231,   232,   247,   248,   263,
+     264,   266,   267,   268,   269,   271,   292,   325,   339,   346,
+     345,   376,   379,   378,   404,   406,   407,   408,   409,   410,
+     411,   414,   413,   439,   441,   442,   445,   444,   470,   472,
+     473,   475,   476,   477,   478,   491,   514,   513,   556,   588,
+     589,   591,   604
 };
 #endif
 
@@ -1360,16 +1344,16 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 72 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 56 "compiler_parser.ypp" /* yacc.c:1646  */
     {
                                     ofstream tree_file (parser_tree_path, ofstream::out);
                                     if (tree_file.is_open()) { tree_file << ""; tree_file.close(); }
                                 }
-#line 1369 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1353 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 76 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 60 "compiler_parser.ypp" /* yacc.c:1646  */
     {
 
                                     name_t last_var  = vars_stack.back();
@@ -1390,11 +1374,11 @@ yyreduce:
                                         YYERROR;
                                     }
                                 }
-#line 1394 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1378 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 103 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 87 "compiler_parser.ypp" /* yacc.c:1646  */
     { 
 
                                                     string convert_1 ((yyvsp[-2].keyword)), //type
@@ -1417,11 +1401,11 @@ yyreduce:
                                                         YYERROR;
                                                     } 
                                                 }
-#line 1421 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1405 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 125 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 109 "compiler_parser.ypp" /* yacc.c:1646  */
     { 
 
                                                     string convert_1 ((yyvsp[-5].keyword)), //type
@@ -1444,23 +1428,23 @@ yyreduce:
                                                         YYERROR;
                                                     } 
                                                 }
-#line 1448 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1432 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 148 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 132 "compiler_parser.ypp" /* yacc.c:1646  */
     { write_to_tree("]"); }
-#line 1454 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1438 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 148 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 132 "compiler_parser.ypp" /* yacc.c:1646  */
     { write_to_tree("]"); }
-#line 1460 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1444 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 149 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 133 "compiler_parser.ypp" /* yacc.c:1646  */
     {
 
                             string convert_1 ((yyvsp[-2].keyword)), //return type
@@ -1485,41 +1469,41 @@ yyreduce:
                                 YYERROR;
                             }
                         }
-#line 1489 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1473 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 177 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 161 "compiler_parser.ypp" /* yacc.c:1646  */
     { write_to_tree(" "); }
-#line 1495 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1479 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 177 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 161 "compiler_parser.ypp" /* yacc.c:1646  */
     { /* cout << "params: " << $2 << endl; */ (yyval.number) = (yyvsp[0].number); }
-#line 1501 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1485 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 178 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 162 "compiler_parser.ypp" /* yacc.c:1646  */
     { /* cout << "no params" << endl; */ (yyval.number) = 0; }
-#line 1507 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1491 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 180 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 164 "compiler_parser.ypp" /* yacc.c:1646  */
     { (yyval.number) = (yyvsp[-2].number) + 1; /* counting parameters */ }
-#line 1513 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1497 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 181 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 165 "compiler_parser.ypp" /* yacc.c:1646  */
     { (yyval.number) = 1; }
-#line 1519 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1503 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 183 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 167 "compiler_parser.ypp" /* yacc.c:1646  */
     { 
 
                                             string convert_1 ((yyvsp[-1].keyword)), //type
@@ -1543,11 +1527,11 @@ yyreduce:
                                                 YYERROR;
                                             }
                                         }
-#line 1547 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1531 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 206 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 190 "compiler_parser.ypp" /* yacc.c:1646  */
     { 
 
                                             string convert_1 ((yyvsp[-3].keyword)), //type
@@ -1571,35 +1555,35 @@ yyreduce:
                                                 YYERROR;
                                             }
                                         }
-#line 1575 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1559 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 231 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 215 "compiler_parser.ypp" /* yacc.c:1646  */
     { write_to_tree("[compound-stmt "); open_scope(next_scope_type); next_scope_type = "block"; }
-#line 1581 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1565 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 232 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 216 "compiler_parser.ypp" /* yacc.c:1646  */
     { write_to_tree("]"); if (!close_scope()) YYERROR; }
-#line 1587 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1571 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 246 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 230 "compiler_parser.ypp" /* yacc.c:1646  */
     { write_to_tree("]"); }
-#line 1593 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1577 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 247 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 231 "compiler_parser.ypp" /* yacc.c:1646  */
     { write_to_tree("]"); }
-#line 1599 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1583 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 248 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 232 "compiler_parser.ypp" /* yacc.c:1646  */
     {
 
                             string convert ((yyvsp[-1].type_name));
@@ -1614,17 +1598,17 @@ yyreduce:
                                 YYERROR;
                             }
                         }
-#line 1618 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1602 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 263 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 247 "compiler_parser.ypp" /* yacc.c:1646  */
     { write_to_tree("]"); }
-#line 1624 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1608 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 264 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 248 "compiler_parser.ypp" /* yacc.c:1646  */
     {
 
                             string convert ((yyvsp[-1].type_name));
@@ -1639,17 +1623,17 @@ yyreduce:
                                 YYERROR;
                             }
                         }
-#line 1643 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1627 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 279 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 263 "compiler_parser.ypp" /* yacc.c:1646  */
     { if (current_func >= 0) funcs_stack[current_func].return_counter = 0; }
-#line 1649 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1633 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 287 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 271 "compiler_parser.ypp" /* yacc.c:1646  */
     {
 
                                     //cout << "return call" << endl;
@@ -1671,11 +1655,11 @@ yyreduce:
                                         YYERROR;
                                     }
                                 }
-#line 1675 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1659 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 308 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 292 "compiler_parser.ypp" /* yacc.c:1646  */
     {   
 
                                     string convert ((yyvsp[-1].type_name));
@@ -1708,11 +1692,11 @@ yyreduce:
                                         YYERROR;
                                     } 
                                 }
-#line 1712 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1696 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 341 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 325 "compiler_parser.ypp" /* yacc.c:1646  */
     {
 
                                 string convert ((yyvsp[-1].type_name));
@@ -1727,27 +1711,27 @@ yyreduce:
                                     YYERROR;
                                 }
                             }
-#line 1731 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1715 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 355 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 339 "compiler_parser.ypp" /* yacc.c:1646  */
     { 
                                 write_to_tree("[;]");
                                 expr_acc = "";
                                 (yyval.type_name) = strdup(string("void").c_str());
                             }
-#line 1741 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1725 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 362 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 346 "compiler_parser.ypp" /* yacc.c:1646  */
     { expr_aux.push_back(expr_acc); expr_acc = ""; }
-#line 1747 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1731 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 363 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 347 "compiler_parser.ypp" /* yacc.c:1646  */
     {  
 
                                             string convert_1 ((yyvsp[-3].type_name)),
@@ -1777,17 +1761,17 @@ yyreduce:
                                                 YYERROR;
                                             }
                                         }
-#line 1781 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1765 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 395 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 379 "compiler_parser.ypp" /* yacc.c:1646  */
     { expr_aux.push_back(expr_acc); expr_acc = ""; }
-#line 1787 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1771 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 396 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 380 "compiler_parser.ypp" /* yacc.c:1646  */
     {
 
                                                 string convert_1 ((yyvsp[-3].type_name)),
@@ -1812,17 +1796,17 @@ yyreduce:
                                                     YYERROR;
                                                 }
                                             }
-#line 1816 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1800 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 61:
-#line 430 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 414 "compiler_parser.ypp" /* yacc.c:1646  */
     { expr_aux.push_back(expr_acc); expr_acc = ""; }
-#line 1822 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1806 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 62:
-#line 431 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 415 "compiler_parser.ypp" /* yacc.c:1646  */
     {
 
                                 string convert_1 ((yyvsp[-3].type_name)),
@@ -1847,17 +1831,17 @@ yyreduce:
                                     YYERROR;
                                 }
                             }
-#line 1851 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1835 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 66:
-#line 461 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 445 "compiler_parser.ypp" /* yacc.c:1646  */
     { expr_aux.push_back(expr_acc); expr_acc = ""; }
-#line 1857 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1841 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 67:
-#line 462 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 446 "compiler_parser.ypp" /* yacc.c:1646  */
     {   
 
                                 string convert_1 ((yyvsp[-3].type_name)),
@@ -1882,29 +1866,29 @@ yyreduce:
                                     YYERROR;
                                 }
                             }
-#line 1886 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1870 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 71:
-#line 491 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 475 "compiler_parser.ypp" /* yacc.c:1646  */
     { (yyval.type_name) = (yyvsp[-1].type_name); }
-#line 1892 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1876 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 72:
-#line 492 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 476 "compiler_parser.ypp" /* yacc.c:1646  */
     { /* string convert ($1); cout << "call var of type "  << convert << endl; */ (yyval.type_name) = (yyvsp[0].type_name); }
-#line 1898 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1882 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 73:
-#line 493 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 477 "compiler_parser.ypp" /* yacc.c:1646  */
     { /* string convert ($1); cout << "call func of type " << convert << endl; */ (yyval.type_name) = (yyvsp[0].type_name); }
-#line 1904 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1888 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 74:
-#line 494 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 478 "compiler_parser.ypp" /* yacc.c:1646  */
     { 
                                 if (((yyvsp[0].number) < 2147483648)  &&
                                     ((yyvsp[0].number) > -2147483648)) {
@@ -1917,11 +1901,11 @@ yyreduce:
                                     YYERROR;
                                 }
                             }
-#line 1921 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1905 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 75:
-#line 507 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 491 "compiler_parser.ypp" /* yacc.c:1646  */
     {   
 
                             string convert ((yyvsp[0].identifier));                                   
@@ -1944,17 +1928,17 @@ yyreduce:
                                 YYERROR;                        
                             }                                    
                         }
-#line 1948 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1932 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 76:
-#line 530 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 514 "compiler_parser.ypp" /* yacc.c:1646  */
     { string convert_1 ((yyvsp[-1].identifier)); expr_aux.push_back("[var [" + convert_1 + "]"); }
-#line 1954 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1938 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 77:
-#line 531 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 515 "compiler_parser.ypp" /* yacc.c:1646  */
     {
 
                             string convert_1 ((yyvsp[-4].identifier)),
@@ -1995,59 +1979,59 @@ yyreduce:
                                 YYERROR;                        
                             }
                         }
-#line 1999 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 1983 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 78:
-#line 572 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 556 "compiler_parser.ypp" /* yacc.c:1646  */
     { 
 
-                                    string convert ((yyvsp[-3].identifier));
-                                    func_t holder;                         
+                            string convert ((yyvsp[-3].identifier));
+                            func_t holder;                         
 
-                                    //free($1);
-                                    //cout << "call of func " << convert    << endl;
-                                    //cout << "args: "        << $3->size() << endl;
+                            //free($1);
+                            //cout << "call of func " << convert    << endl;
+                            //cout << "args: "        << $3->size() << endl;
 
-                                    if ((yyvsp[-1].arguments)->size() > 0) { expr_aux.back() = " " + expr_aux.back(); }
-                                    
-                                    expr_acc = "[call [" + convert + "][args" + expr_aux.back() + "]]";
-                                    expr_aux.pop_back();
+                            if ((yyvsp[-1].arguments)->size() > 0) { expr_aux.back() = " " + expr_aux.back(); }
+                            
+                            expr_acc = "[call [" + convert + "][args" + expr_aux.back() + "]]";
+                            expr_aux.pop_back();
 
-                                    if (get_func(convert, holder)) {
+                            if (get_func(convert, holder)) {
 
-                                        //cout << "params: " << holder.args.size() << endl;
+                                //cout << "params: " << holder.args.size() << endl;
 
-                                        if (!comp_args(holder, (yyvsp[-1].arguments))) {
-                                            YYERROR;
-                                        }
-                                        else {
-                                            (yyval.type_name) = strdup(holder.def.type.c_str());
-                                        }
-
-                                        args_acc.clear();                 
-                                    }                                  
-                                    else {                             
-                                        YYERROR;                      
-                                    }
+                                if (!comp_args(holder, (yyvsp[-1].arguments))) {
+                                    YYERROR;
                                 }
-#line 2035 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+                                else {
+                                    (yyval.type_name) = strdup(holder.def.type.c_str());
+                                }
+
+                                args_acc.clear();                 
+                            }                                  
+                            else {                             
+                                YYERROR;                      
+                            }
+                        }
+#line 2019 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 79:
-#line 604 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 588 "compiler_parser.ypp" /* yacc.c:1646  */
     { expr_aux.push_back(""); vector<string> empty; (yyval.arguments) = &empty; }
-#line 2041 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 2025 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 80:
-#line 605 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 589 "compiler_parser.ypp" /* yacc.c:1646  */
     { (yyval.arguments) = (yyvsp[0].arguments); }
-#line 2047 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 2031 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 81:
-#line 607 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 591 "compiler_parser.ypp" /* yacc.c:1646  */
     { 
 
                                     string convert ((yyvsp[0].type_name)); // <---
@@ -2061,11 +2045,11 @@ yyreduce:
                                     (yyvsp[-2].arguments)->push_back(convert); /* stacking arguments */
                                     (yyval.arguments) = (yyvsp[-2].arguments);
                                 }
-#line 2065 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 2049 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 82:
-#line 620 "compiler_parser.ypp" /* yacc.c:1646  */
+#line 604 "compiler_parser.ypp" /* yacc.c:1646  */
     {
 
                                     string convert ((yyvsp[0].type_name));
@@ -2077,11 +2061,11 @@ yyreduce:
                                     args_acc.push_back(convert);
                                     (yyval.arguments) = &args_acc;
                                 }
-#line 2081 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 2065 "compiler_parser.tab.cpp" /* yacc.c:1646  */
     break;
 
 
-#line 2085 "compiler_parser.tab.cpp" /* yacc.c:1646  */
+#line 2069 "compiler_parser.tab.cpp" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2309,7 +2293,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 632 "compiler_parser.ypp" /* yacc.c:1906  */
+#line 616 "compiler_parser.ypp" /* yacc.c:1906  */
 
 
 void yyerror (string message) {
@@ -2348,6 +2332,22 @@ int get_var_index_full (string n) {
     }
 
     return -1;
+}
+
+string closest_scope_var (string n) {
+    
+    int pos = get_var_index_full(n);
+
+    if (pos >= 0) {
+        for (int i = pos - 1; i >= 0; i--) { // traverse back until global scope
+            
+            if (vars_stack[i].name == "###") {
+                return vars_stack[i].type;
+            }
+        }
+    }
+
+    return "global";
 }
 
 int get_var_index_closest (string n) {
@@ -2399,17 +2399,41 @@ bool get_var (string n, name_t &holder) {
     return false;
 }
 
+bool codegen_get_var (string n, name_t &holder) {
+
+    int i = get_var_index_full(n);
+    
+    if (i >= 0) {
+        holder = vars_stack[i];
+        return true;
+    }
+
+    //yyerror("var " + n + " wasn't declared in this scope");
+    return false;
+}
+
 bool create_func (string t, string n) {
 
     for (auto i:funcs_stack) {
         if (i.def.name == n) {
-            yyerror("func " + n + " already declared in this scope");
+            yyerror("func " + n + " already declared");
             return false;
         }
     }
 
     funcs_stack.push_back({{t, n}, {}, false, 0});
     return true;
+}
+
+int get_func_index (string n) {
+
+    for (unsigned int i = 0, len = funcs_stack.size(); i < len; i++) {
+        if (funcs_stack[i].def.name == n) {
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 bool get_func (string n, func_t &holder) {
@@ -2421,7 +2445,7 @@ bool get_func (string n, func_t &holder) {
         }
     }
 
-    yyerror("func " + n + " wasn't declared in this scope");
+    yyerror("func " + n + " wasn't declared");
     return false;
 }
 
